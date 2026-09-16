@@ -1,0 +1,108 @@
+@import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+   Visual identity: "obsidian terminal" — deep navy-black, amber accent, mono
+   numerals, hairline borders. Deliberately distinct from the oriz fleet's
+   other sites (which lean light/rounded).
+   --------------------------------------------------------------------------- */
+@theme {
+  --color-void: #0a0e16;
+  --color-panel: #0f1420;
+  --color-panel-2: #131a28;
+  --color-hair: rgba(255, 255, 255, 0.07);
+  --color-hair-2: rgba(255, 255, 255, 0.12);
+  --color-ink: #e6eaf2;
+  --color-muted: #8b97a8;
+  --color-faint: #5a6478;
+  --color-amber: #e8b84b;
+  --color-fear: #e8624a;
+  --color-greed: #3fb98a;
+  --color-neut: #8b97a8;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background-color: var(--color-void);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--color-amber) 35%, transparent);
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-void);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #232c3d;
+    border-radius: 6px;
+    border: 2px solid var(--color-void);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #33405a;
+  }
+}
+
+@layer utilities {
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  /* Ambient light bloom behind the header — the only decorative flourish. */
+  .bloom {
+    background:
+      radial-gradient(900px 380px at 12% -10%, rgba(232, 184, 75, 0.10), transparent 62%),
+      radial-gradient(760px 320px at 88% -14%, rgba(74, 163, 232, 0.09), transparent 60%);
+  }
+  .card {
+    background: linear-gradient(180deg, var(--color-panel-2) 0%, var(--color-panel) 100%);
+    border: 1px solid var(--color-hair);
+    border-radius: 12px;
+  }
+  .card-hover {
+    transition:
+      border-color 160ms ease,
+      transform 160ms ease,
+      box-shadow 160ms ease;
+  }
+  .card-hover:hover {
+    border-color: var(--color-hair-2);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.7);
+  }
+  .hairline {
+    border-color: var(--color-hair);
+  }
+  .fade-in {
+    animation: fade 260ms ease both;
+  }
+  @keyframes fade {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fade-in {
+      animation: none;
+    }
+    .card-hover:hover {
+      transform: none;
+    }
+  }
+}

@@ -1,0 +1,9 @@
+# Normalize line endings.
+* text=auto eol=lf
+
+# No git LFS — see the data API repo's check-no-lfs script. This dashboard has
+# no binary assets that would justify it, and LFS pointers would break the
+# Pages deploy the same way they would break the data API.
+*.png -filter
+*.ico -filter
+*.woff2 -filter

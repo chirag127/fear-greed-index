@@ -1,0 +1,51 @@
+name: smoke
+
+# Runs against the DEPLOYED site rather than a local preview, because the whole
+# point is to catch a data API that has gone stale, a source that changed shape,
+# or a rendering regression in production. A local run needs the sibling data
+# API repo checked out next to this one, which CI does not have.
+on:
+  schedule:
+    - cron: '30 4 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.18.0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Chrome is present on GitHub's ubuntu runners; the test prefers a system
+      # browser over Playwright's bundled download.
+      - name: Browser smoke test
+        run: node tests/smoke.mjs https://chirag127.github.io/fear-greed-index/
+        env:
+          SHOT_DIR: smoke-shots
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: smoke-screenshots
+          path: smoke-shots
+          retention-days: 7
+          if-no-files-found: ignore
