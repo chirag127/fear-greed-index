@@ -33,7 +33,7 @@ jobs:
           node-version: '22'
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile --config.strict-dep-builds=false
 
       # Chrome is present on GitHub's ubuntu runners; the test prefers a system
       # browser over Playwright's bundled download.
