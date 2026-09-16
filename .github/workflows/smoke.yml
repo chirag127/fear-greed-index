@@ -4,15 +4,19 @@ name: smoke
 # point is to catch a data API that has gone stale, a source that changed shape,
 # or a rendering regression in production. A local run needs the sibling data
 # API repo checked out next to this one, which CI does not have.
+#
+# Triggered by the deploy finishing, not by a push. When both ran off the same
+# push they started within a second of each other and the smoke test audited the
+# PREVIOUS bundle, then failed on a bug that had already been fixed and not yet
+# served - a false alarm that is worse than no test, because it trains you to
+# ignore the result.
 on:
+  workflow_run:
+    workflows: ["deploy"]
+    types: [completed]
   schedule:
     - cron: '30 4 * * *'
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'src/**'
-      - 'tests/**'
 
 permissions:
   contents: read
@@ -21,6 +25,8 @@ permissions:
 jobs:
   smoke:
     runs-on: ubuntu-latest
+    # On a workflow_run trigger, only audit a deploy that actually succeeded.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@v7
 
@@ -34,6 +40,23 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+
+      - name: Wait for Pages to serve a build
+        # A completed deploy does not guarantee the CDN has switched over yet.
+        # Poll instead of assuming, otherwise the audit is a coin flip.
+        run: |
+          url="https://chirag127.github.io/fear-greed-index/"
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$url" || true)
+            if [ "$code" = "200" ]; then
+              echo "Pages is serving ($url -> 200) after ${i} attempt(s)"
+              exit 0
+            fi
+            echo "attempt ${i}: HTTP ${code}; waiting"
+            sleep 10
+          done
+          echo "Pages did not return 200 within 5 minutes" >&2
+          exit 1
 
       # Chrome is present on GitHub's ubuntu runners; the test prefers a system
       # browser over Playwright's bundled download.
