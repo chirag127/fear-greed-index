@@ -1,16 +1,25 @@
 import type { Latest, SeriesFile, SeriesIndex } from './types';
 
 /**
- * The API is a set of static files. Two hosts are equivalent, and which one is
- * reachable depends on the environment (custom domain DNS, Pages propagation,
- * offline dev), so we probe rather than assume.
+ * The API is a set of static files on more than one equivalent host, and which
+ * one is reachable depends on the environment (CDN propagation, offline dev), so
+ * we probe rather than assume.
+ *
+ * Ordering carries meaning. `raw.githubusercontent.com` is first because it
+ * serves the committed JSON directly with no Pages build in the path, so new data
+ * is visible the moment the collector pushes rather than after a site rebuild.
+ *
+ * A dead entry here is not harmless: a host that fails at the TLS layer makes the
+ * browser log a network error that no application code can suppress, and the
+ * smoke test - correctly - treats any console error as a failure. An earlier
+ * custom domain left over from this project's previous repository name was still
+ * being probed first and failing its certificate check on every single page load.
  */
 const CANDIDATES = [
   import.meta.env.VITE_API_BASE as string | undefined,
   // In dev the Vite middleware serves the sibling API repo from disk, so work
   // never blocks on a push. Dead in production builds.
   import.meta.env.DEV ? '/api-local' : undefined,
-  'https://market-mood-index.api.oriz.in',
   'https://raw.githubusercontent.com/chirag127/fear-greed-index-api/main',
   'https://chirag127.github.io/fear-greed-index-api',
 ].filter(Boolean) as string[];
