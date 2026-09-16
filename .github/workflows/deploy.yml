@@ -39,12 +39,7 @@ jobs:
           echo "--- effective pnpm config ---"
           pnpm config list
 
-      - name: Install
-        # `esbuild` is allowlisted in pnpm-workspace.yaml because its postinstall
-        # links the platform binary. The runner nonetheless reports it as
-        # "ignored" and treats that as fatal, so strict mode is relaxed here
-        # rather than leaving the deploy blocked behind an unreadable allowlist.
-        run: pnpm install --frozen-lockfile --config.strict-dep-builds=false
+      - run: pnpm install --frozen-lockfile
 
       - name: Typecheck
         run: pnpm run typecheck
