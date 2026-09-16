@@ -1,0 +1,11 @@
+# pnpm 11 stopped reading the `pnpm` field in package.json, so this is the only
+# place the setting is honoured. Putting it in package.json still produced
+# ERR_PNPM_IGNORED_BUILDS in CI (and a warning saying the key was ignored), which
+# failed the deploy at the install step before it ever reached the build.
+#
+# pnpm blocks dependency lifecycle scripts by default, which is the right default:
+# a postinstall hook runs arbitrary code. esbuild is the one dependency here that
+# genuinely needs it, to link its platform-specific binary, so it is allowlisted
+# by name rather than by turning the gate off globally.
+onlyBuiltDependencies:
+  - esbuild
