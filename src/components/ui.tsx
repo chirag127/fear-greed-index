@@ -59,6 +59,7 @@ export function Stat({
   decimals = 2,
   unit,
   delta,
+  deltaDecimals,
   deltaLabel,
   color,
 }: {
@@ -67,11 +68,18 @@ export function Stat({
   decimals?: number;
   unit?: string;
   delta?: number | null;
+  /**
+   * Precision for the delta, which is often a different quantity to the value.
+   * A Nifty level needs 0 decimals but its percent change needs 2: sharing one
+   * setting rounded a +0.43% move to a flat "0%" on the headline card.
+   */
+  deltaDecimals?: number;
   deltaLabel?: string;
   color?: string;
 }) {
   const dir = delta == null ? 0 : Math.sign(delta);
   const deltaColor = dir > 0 ? THEME.up : dir < 0 ? THEME.down : THEME.muted;
+  const dDecimals = deltaDecimals ?? (deltaLabel === '%' ? 2 : decimals);
   return (
     <div className="card p-3.5">
       <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--color-faint)]">{label}</div>
@@ -81,7 +89,7 @@ export function Stat({
       </div>
       {delta != null && (
         <div className="num mt-1.5 text-[11px]" style={{ color: deltaColor }}>
-          {dir > 0 ? '▲' : dir < 0 ? '▼' : '■'} {Math.abs(delta).toFixed(decimals)}
+          {dir > 0 ? '▲' : dir < 0 ? '▼' : '■'} {Math.abs(delta).toFixed(dDecimals)}
           {deltaLabel && <span className="ml-1 text-[var(--color-faint)]">{deltaLabel}</span>}
         </div>
       )}

@@ -60,7 +60,12 @@ export default function Overview({ onOpenSeries }: { onOpenSeries: (id: string) 
           { key: 'crypto-fng', data: headline.crypto, label: 'Crypto · F&G' },
         ].map(({ key, data, label }) => {
           if (!data) return null;
-          const delta = data.prev != null ? data.meta.lastValue - data.prev : null;
+          // Prefer the snapshot's reference point. A source with no history
+          // endpoint (the MMI) cannot supply a prior value from its own series,
+          // and falling back to `null` here would blank the day's move on the
+          // one card where a large move matters most.
+          const prevRef = h?.[key]?.previous ?? data.prev;
+          const delta = prevRef != null ? data.meta.lastValue - prevRef : null;
           return (
             <Panel
               key={key}
@@ -77,7 +82,7 @@ export default function Overview({ onOpenSeries }: { onOpenSeries: (id: string) 
               <EChart option={gaugeOption(data.meta.lastValue, '', zones)} height={172} />
               <div className="mt-1 flex items-center justify-center gap-3 text-[10px] text-[var(--color-faint)]">
                 <span className="num">
-                  prev {fmt(h?.[key]?.previous ?? data.prev, data.meta.decimals)}
+                  prev {fmt(prevRef, data.meta.decimals)}
                 </span>
                 <span className="opacity-40">·</span>
                 <span className="num">1d {delta == null ? '—' : (delta >= 0 ? '+' : '') + delta.toFixed(2)}</span>

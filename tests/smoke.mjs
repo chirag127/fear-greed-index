@@ -101,6 +101,15 @@ async function main() {
     if (!summary.body.includes(needle)) failures.push(`headline gauge missing: ${needle}`);
   }
 
+  // ...and each must carry a 1-day delta. The MMI has no history endpoint, so it
+  // cannot derive a prior value from its own series; it once rendered "prev -"
+  // and "1d -" here, silently hiding the day's move on the most visible card.
+  const headlineArea = summary.body.slice(0, 1200);
+  const blankDeltas = (headlineArea.match(/1d\s*\u2014/g) ?? []).length;
+  if (blankDeltas) failures.push(`${blankDeltas} headline gauge(s) show no 1-day delta`);
+  const blankPrev = (headlineArea.match(/prev\s*\u2014/g) ?? []).length;
+  if (blankPrev) failures.push(`${blankPrev} headline gauge(s) show no previous reading`);
+
   // Walk every tab.
   for (const tab of TABS) {
     const clicked = await page
